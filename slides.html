@@ -1,0 +1,656 @@
+<style>
+
+  * {
+    box-sizing: border-box;
+  }
+
+  .light {
+    background: #e4ebee;
+    color: #1c202b;
+  }
+
+  .emphasis {
+    background: #fb544d;
+    color: #fff;
+  }
+
+  .emphasis h1,
+  .emphasis h2,
+  .emphasis h3,
+  .emphasis h4 {
+    color: #1c202b;
+  }
+
+  .light h1,
+  .light h2,
+  .light h3,
+  .light h4 {
+    color: #1c202b;
+  }
+
+  .dark {
+    background: #1c202b;
+  }
+
+  .reveal .subtitle {
+    font-family: 'Jaapokki-regular', sans-serif;
+  }
+
+  .slides>section {
+    padding: 1% !important;
+  }
+
+  .midten {
+    height: 100%;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .midten > * {
+    text-align: center !important;
+  }
+
+  h1, h2, h3, h4 {
+    text-align: left;
+  }
+
+  .reveal p {
+    font-size: 150%;
+    text-align: left;
+  }
+  span.uthev {
+    color: #fb544d;
+  }
+
+  img {
+    border: none !important;
+    background: inherit !important;
+    box-shadow: none !important;
+  }
+
+  .strike.visible:not(.current-fragment) {
+    text-decoration: line-through;
+  }
+
+</style>
+
+<section class="midten">
+  <h2>EN F# TROJANSK HEST</h2>
+  <h2>&mdash;</h2>
+  <h3>Erfaringer fra bruken av et F#-domene i en C#-kontekst</h3>
+  <h7>Stian Veum Møllersen / @mollerse</h7>
+  <h7>BEKK</h7>
+</section>
+
+<section class="light midten" data-background="e4ebee">
+  <h2>KONTEKST</h2>
+  <aside class="notes">
+    <p>
+      Vi starter med litt bakgrunn for prosjektet for å etablere konteksten for de
+tingene jeg kommer til å snakke om senere.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>Problemstillingen</h3>
+  <p>
+    Forbedre kommunikasjon mellom lege, sykehus og pasient gjennom å tilby verktøy
+med bedre gjengivelse- og analyse-muligheter.
+  </p>
+  <aside class="notes">
+    <p>
+      Det var litt av en munnfull. Hvis vi utvider litt så betyr dette at vekten
+ligger på å la pasientene gi mer nøyaktig informasjon ved å gi de gode
+grensesnitt for informasjonshenting for så å gjøre analyse og foredling av denne
+informasjonen for legen og sykehuset.
+    </p>
+    <p>
+      Hoved-entiteten i systemet er et sett med spørsmål pasienter skal svare på
+gjennom sykehus-oppholdet. Disse spørsmålene samles inn gjennom et grensesnitt
+som kjører i browseren på tablets eller hjemme på pasientens PC. Disse svarene
+blir så analysert og behandlet og presentert for legene på måter som skal gi
+maksimalt med støtte for beslutningene legene tar vedrørende pasienten.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>Prosjektet</h3>
+  <p>
+    Heter Eir.
+  </p>
+  <br>
+  <p>
+    Startup-ish situasjon med et lite team, høy leveringsfrekvens og få tekniske
+rettningslinjer.
+  </p>
+  <aside class="notes">
+    <p>
+      Settingen for prosjektet er en slags startup. Det er et lite firma som har
+utspring fra NTNUs inkubator Technology Transfer Office (TTO). TTO hjelper
+ansatte og studenter ved NTNU med å realisere ideene sine. For å klare å
+realisere akkurat denne ideen har de engasjert et team fra BEKKs
+Trondheims-kontor, hvor jeg jobbet frem til jeg flytta til Oslo nå i sommer.
+    </p>
+    <p>
+      Siden prosjektet er i en oppstartsfase hvor lite er hugd i stein har det vært
+viktig å kunne realisere funksjonalitet så tidlig som mulig for å gjennomføre
+brukertesting. Dette førte til at vi som utviklere fikk frie tøyler til å velge
+teknologi som hjalp oss med dette.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>Teamet</h3>
+  <p>
+    Lite, med stor variasjon i bakgrunn og erfaring.
+  </p>
+  <aside class="notes">
+    <p>
+      Vi har vært en lite team. Teamet har stort sett aldri vært mer enn 3
+utviklere og en interaksjonsdesigner på en gang. Og i enkelte faser vært nede i
+kun en fulltids-utvikler.
+    </p>
+    <p>
+      Bakgrunnen til utviklerne som har vært innom prosjektet har vært ganske ulik,
+men felles har vært at alle utviklerne som har vært innom har vært motiverte og
+nyskjerrige. Ta meg selv feks. Erfaren frontend-utvikler, med en forkjerlighet
+for funksjonell programmering i JavaScript.
+    </p>
+    <p>
+      Med unntak av personen som introduserte F# på prosjektet har ingen av
+teammedlemmene hatt noe særlig erfaring med F# (eller andre ML-dialekter).
+    </p>
+    <p>
+      Det er også verdt å nevne at det i alt har vært 8 ulike utviklere innom
+prosjektet.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>Driftsituasjon</h3>
+  <p>
+    Skal driftes on-premise av sykehusene selv.
+  </p>
+  <br>
+  <p>
+    Har vært i test-prod på Azure i ca 1.5 år.
+  </p>
+  <aside class="notes">
+    <p>
+      Planen er at dette systemet skal driftes on premise av sykehusets egne
+IT-avdelinger. Dette er pga diverse lover og regler for håndtering av sensitive
+data, som det fort blir når en driver med pasienter.
+    </p>
+    <p>
+      Systemet har vært i en prod-like tilstand på Azure i ca 1.5 år nå, med aktiv
+bruk i test og forskning.
+    </p>
+  </aside>
+</section>
+
+<section class="midten light" data-background="e4ebee">
+  <h2>TEKNISK KONTEKST</h2>
+  <aside class="notes">
+    <p>
+      Nå som vi har litt bakgrunn for prosjektet, la oss ta en liten titt på den
+tekniske implementasjonen av systemet. Med min egen bakgrunn og prosjektets
+størrelse tatt i betraktning kommer jeg ikke til å gå veldig nøye inn på de
+tekniske aspektene av løsningen, det ville vært litt preaching to the choir og
+jeg er sikker på at dere i publikum har bedre kontroll på de forskjellige
+aspektene ved F# enn jeg har.
+    </p>
+    <p>
+      Målet med denne delen av presentasjonen er egentlig å sette erfaringene og
+gevinstene i en teknisk kontekst.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>Arkitektur</h3>
+  <p>
+    Klassisk client-server.
+  </p>
+  <br>
+  <p>
+    I dag består systemet av tre client-server-par med felles datalager.
+  </p>
+  <aside class="notes">
+    <p>
+      En ganske standard client-server implementasjon. Det er lite kompleksitet i form
+av mikrotjenester eller andre system-nivå utfordringer. Bare en straight up .NET
+server som tar imot noe data, behandler det og lagrer det i en database.
+    </p>
+    <p>
+      Til nå har vi styrt unna all integrasjon med andre systemer hos sykehusene eller
+3.parts tjenester under kjøring. Vi benytter oss av google docs for en del av de
+redaktørstyrte dataene.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>Arkitektur - Server</h3>
+  <p>
+    En .NET-løsning. Et par tynne C# lag for å kommunisere med client og database
+(MSSQL). All domenelogikk i F#.
+  </p>
+  <br>
+  <p>
+    Hovedoppgave er behandling og transformasjon av data.
+  </p>
+  <aside class="notes">
+    <p>
+      Serveren er implementert med kun et tynt lag av C# controllere over en kjerne av
+F#. Det er også litt C# for å kommunisere med databasen (MSSQL).
+    </p>
+    <p>
+      Vi har også en liten F#-modul som lar oss kommunisere med google docs. Denne
+kommunikasjonen skjer hovedsaklig buildtime for å hente statiske data fra google
+docs. Det finnes et foredrag fra Smidig 2013 av Jonas Follesø om akkurat denne
+løsningen, anbefales hvis noen trenger en  MVP for redaktørstyrte data.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>Arkitektur - Client</h3>
+  <p>
+    En React.js løsning. Tykk JS-applikasjon som er drevet av dataene fra serveren.
+  </p>
+  <br>
+  <p>
+    Her er mesteparten av kompleksiteten i systemet.
+  </p>
+  <aside class="notes">
+    <p>
+      For kompletthetens skyld så kan vi ta en liten tur innom web-clienten til
+systemet. Dette er en JS-app implementert i React.js med støtte fra
+Immutable.js. Det er egentlig her mesteparten av kompleksiteten til systemet
+ligger.
+    </p>
+    <p>
+      Klienten blir drevet av en stor datastruktur den mottar fra serveren ved load.
+Det er da opp til klienten å navigere gjennom denne strukturen og poste
+oppdateringer tilbake til serveren.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>F# i C#-land</h3>
+  <p>
+    F# koden lever i egne prosjekter som blir inkludert som refererte binaries.
+  </p>
+  <br>
+  <p>
+    Alt er en del av samme solution.
+  </p>
+  <aside class="notes">
+    <p>
+      Å kombinere F# og C# er ganske rett frem, som de fleste av dere sikkert har
+testa ut. C# kan ha referanser til kompilerte F#-binaries, som fungerer akkurat
+som C# binaries.
+    </p>
+    <p>
+      Dette konkluderer det jeg hadde tenkt å si om tekniske detaljer.
+    </p>
+  </aside>
+</section>
+
+<section class="midten light" data-background="e4ebee">
+  <h2>GEVINSTER &amp; ERFARINGER</h2>
+  <aside class="notes">
+    <p>
+      Dette er kanskje det området hvor dette prosjektet har mest å bidra med tilbake
+til communityen. Det finnes mer interessante tekniske case-studies for F#, men
+det vi derimot har, som er interessant å se på, er hvordan teknologivalget har
+fungert i forhold den konteksten prosjektet har befunnet seg i.
+    </p>
+    <p>
+      Prosjektet har testa ut hvorvidt F# fungerer som et språkvalg for
+utviklere fra mange forskjellige bakgrunner og erfaringsnivåer. Mange endringer
+og høy leveringshastighet gjør at fleksibiliteten til språket virkelig får kjørt
+seg.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>Datatransformasjon</h3>
+  <p>
+    Hovedoppgaven til serveren er å transformere data.
+  </p>
+  <br>
+  <p>
+    Funksjonell programmering er en veldig god fit for datatransformasjon.
+  </p>
+  <aside class="notes">
+    <p>
+      Å ha et funksjonellt språk tilgjengelig når datatransformasjon er hovedoppgaven
+er veldig kraftig. Behandle data som data, og ikke som tilstandsfulle entiteter
+med egenskaper, er en mye mer naturlig måte å tenke og jobbe på.
+    </p>
+    <p>
+      Hvis det er en ting jeg vil dra frem som et prima eksempel på hvordan du kan
+snike inn F# i et prosjekt så er det denne typen oppgave. Og det er nettopp
+dette som skjedde på vårt prosjekt. Vi hadde behov for å parse data i et
+spreadsheet og å implementere det i F# virka som det naturlige valget.
+    </p>
+    <p>
+      F# har mange egenskaper som gjør det spesielt godt egna for å jobbe med data.
+Pattern-matching og pipelines er eksempler, men den aller beste tingen er...
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>Typesystem</h3>
+  <p>
+    F# har et utrolig fleksibelt og uttrykksfullt typesystem.
+  </p>
+  <aside class="notes">
+    <p>
+      Jeg trenger vel egentlig ikke å forklare alle fordelene med den typen typesystem
+som F# har, ikke at jeg hadde klart det heller. Men det jeg kan si noe om er
+hvordan dette typesystemet ble opplevd av en frontendutvikler.
+    </p>
+    <p>
+      Jeg har skrevet både Java og C# profesjonelt, og i begge tilfellene følte jeg at
+type-informasjonen var mer i veien enn til nytte. Det var tungvint å definiere
+typer og det var tungvint å komponere typer. Hadde stort sett gitt opp statisk
+typa språk og omfavna JavaScripts dynamiske natur før jeg fikk muligheten til å
+skrive litt F#.
+    </p>
+    <p>
+      Kombinasjonen av databehandlingsevnene og typedefinisjoner mener jeg er den
+største fordelen med å ha F# i verktøykassa. Det lot oss gjøre endringer på
+logikk og struktur uten å frykte for bugs. Dette er det jeg vil dra frem som
+grunnen til at jeg føler meg trygg på at F# var et rett valg i vårt prosjekt mtp
+verdi levert til kunde og sluttbruker.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>Onboarding</h3>
+  <p>
+    F# er ganske greit å komme igang med.
+  </p>
+  <br>
+  <p>
+    Utfordringene stammer i hovedsak fra overgangen fra imperativ/OOP til FP.
+  </p>
+  <aside class="notes">
+    <p>
+      Økosystemet rundt F# er i stor grad det samme som for C#. Du har VS, NuGET,
+MSBUILD etc. Det var lite nytt her når prosjektet allerede har et oppsett for et
+.NET prosjekt.
+    </p>
+    <p>
+      For de av oss som hadde erfaring med FP fra før av var F# ganske greit å komme
+igang med. De som ikke hadde den erfaringen i bakgrunnen sin hadde litt mer
+trøbbel med å komme igang. Kombinasjonen av ny syntax og nytt paradigme kan bli
+i overkant voldsomt. Dette er verdt å ha i bakhodet når F# skal brukes, bruk
+litt tid på å lære funksjonell programering separat fra F# først.
+    </p>
+    <p>
+      Typedefinisjonshierarkiet gir deg umiddelbar oversikt over domenet uten å
+utfordre deg nevneverdig på syntax. Det var med på å gjøre on-boarding mer
+smidig. En ny programmerer kunne sitte med typedefinisjonene foran seg og se
+hvordan de reflekterte de ulike domeneobjektene.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>F#/C#-interop</h3>
+  <p>
+    Kompilerer til samme intermediate language (CLI), som gjør interop mulig.
+  </p>
+  <br>
+  <p>
+    C# kan inkludere F#-binaries uten å tenke spesielt mye over at det er F#.
+  </p>
+  <aside class="notes">
+    <p>
+      F# og C# kompilerer til samme intermediate language, dette gjør interop til en
+ganske behagelig opplevelse. Å bruke typedefinisjoner fra F# i C# laget var
+veldig rett frem, som jeg var inne på tidligere. Inkluder en referanse til
+F#-bibloteket og off you go.
+    </p>
+    <p>
+      Som jeg har toucha inn på før så har dette vært en nøkkelfaktor for at F# er et
+vurderbart valg i en .NET-setting.
+    </p>
+    <p>
+      Å kalle F# funksjoner og metoder fra C# var stort sett uten ekstra mikk, mens å
+kalle C# fra F# gav oss litt fler problemer...
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>F#/C#-interop - NULL</h3>
+  <p>
+    Negerer fordelen med at NULL ikke er en lovlig verdi.
+  </p>
+  <br>
+  <p>
+    En F# record som har vært innom C# kan i teorien få verdien NULL.
+  </p>
+  <aside class="notes">
+    <p>
+      Det kunne så klart ikke være kun fryd og enhjørninger som driter regnbuer. Den
+store fordelen med F# og typer er at NULL ikke er en gyldig verdi by default.
+Ulempen er at med en gang en F# record tar turen oppom C# for en eller annen
+årsak kan den plutselig bli NULL.
+    </p>
+    <p>
+      Nå er dette håndterbart, du kan gjøre patternmatching med NULL som verdi med
+litt box-triksing.
+    </p>
+    <p>
+      Siden koverteringen fra JSON til F# skjedde i C#-controller-laget så ville
+manglende verdier bli satt til NULL. Her finnes det sikkert bedre løsninger, men
+jeg skulle ønske at det var enklere å finne dem.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>F#/C#-interop - async</h3>
+  <p>
+    Ikke direkte oversettbart, må bruke konverteringsfunksjoner.
+  </p>
+  <br>
+  <p>
+    Lett å eksportere funksjoner som passer inn i C# fra F#.
+  </p>
+  <aside class="notes">
+    <p>
+      En annen interop-erfaring, men denne var mer behagelig å jobbe med.
+    </p>
+    <p>
+      Async-programmering i F# og C# er ikke direkte oversettbare. Hvis du ønsker å
+kalle en C#-async metode i F# må du bruke en konverteringsfunksjon. Det var litt
+knot å finne ut av, noe som antageligvis stammer fra en ikke fullstendig
+forståelse av async-await i C#. Men når bitene falt på plass gikk det greit.
+    </p>
+    <p>
+      Siden C# mangler kunnskap om F#s async-modell er det F#-kodens ansvar å
+eksportere funksjoner som er kallbare fra C#. Dette finnes det heldigvis lett
+tilgjengelige konverteringsfunksjoner for å oppnå.
+    </p>
+    <p>
+      Der hvor forskjellen i håndtering av NULL skapte problemer, var denne typen
+interop en mye mer behagelig opplevelse.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>JSON og F#</h3>
+  <p>
+    Discriminated Unions har ingen god oversettelse til eller fra typeløs JSON.
+  </p>
+  <aside class="notes">
+    <p>
+      Dette er mer et lett irritasjonsmoment enn en show-stopper, og det finnes OK
+løsninger på det. Du kan bruke DiscriminatedUnion-converter for JSONet, den
+legger på ekstra metadata om hvilken av subtypene i en Discriminated Union denne
+dataen representerer.
+    </p>
+    <p>
+      Du kan alltids strippe type-informasjonen fra den genererte
+JSON-dataen, men da får du problemer når du skal lagre den igjen. Løsningen vi
+valgte på dette problemet var å la client-applikasjonen ta seg av oversettelsen
+fra F# og tilbake til F# når data skulle lagres.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <h3>F#-scripts</h3>
+  <p>
+    En undervurdert feature. Fungerer utmerket til å lage CLI-tasks og andre utils.
+  </p>
+  <br>
+  <p>
+    Veldig praktisk for utvikling i tospann med en REPL.
+  </p>
+  <aside class="notes">
+    <p>
+      Muligheten til å enkelt lage små scripts som enkelt kan kjøres fra kommandolinja
+eller lignende har vært en veldig stor fordel. Å gjøre de samme
+typedefinisjonene vi bruker for domenelogikk tilgjengelig for andre formål er en
+stor fordel.
+    </p>
+    <p>
+      En av de tingene vi benyttet F#-scripts til var å generere JSON-fixures for
+JavaScript-unittests. På denne måten kunne vi være sikre på at test-data aldri
+kom ut av sync med domenedefinisjonene og dermed eliminere en av de største
+kildene til false positives i unittests.
+    </p>
+    <p>
+      En annen ting vi også benyttet F# scripts til var å kjøre enkle jobber som å
+hente data fra google docs.
+    </p>
+  </aside>
+</section>
+
+<section class="midten light" data-background="#1c202b">
+  <h2>WIN CONDITIONS</h2>
+  <aside class="notes">
+    <p>
+      Nå skal jeg gå litt tilbake og synse litt om hva som gjorde at F# fungerte for
+oss og om det er noen spesielle egenskaper ved den konteksten prosjektet vårt
+eksisterte i som bidro i spesielt stor grad til det.
+    </p>
+  </aside>
+</section>
+
+<section class="midten">
+  <h3>Kompleksitet</h3>
+  <aside class="notes">
+    <p>
+      Dette var et lite komplekst domene å benytte F# i. Dette har såklart hatt mye å
+si for hvor mange roadblocks vi bumper borti iløpet av utviklingsløpet. Som jeg
+var inne på tidligere så var dette hovedgrunnen til at jeg ikke har vist noe
+kode i denne presentasjonen.
+    </p>
+    <p>
+      Vi har på ingen måte pusha F# til sine grenser, men igjen, hvor ofte gjør vi
+egentlig det? Det finnes mange prosjekter, eller sub-prosjekter, som ikke er så
+omfattende at det trengs et teknologiråd for å avgjøre hvorvidt ny syntax er en
+risiko verdt gevinsten.
+    </p>
+  </aside>
+</section>
+
+<section class="midten">
+  <h3>Tekniske fortrinn</h3>
+  <aside class="notes">
+    <p>
+      Det er vanskelig å gjøre en apples to apples sammenligning av de tekniske
+egenskapene til to språk. Men, den funksjonelle naturen til F# oppfordrer sterkt
+til å konstruere modeller som er fundamentalt enklere enn det som er naturlig i
+et tradisjonellt imperativt eller objekt orientert språk. Immutability og andre
+fornuftige defaults i F# gjør det lett å skrive enkel kode.
+    </p>
+    <p>
+      Jeg har ikke tenkt å gå veldig mye mer inn på akkurat dette, men heller henvise
+til Rich Hickeys presentasjoner om enkelhet/simplicity. Er kanskje litt rart å
+se på enkelhet som et teknisk fortrinn, men alt som fører til mindre mental
+overhead fører til færre bugs, og det er et teknisk fortrinn.
+    </p>
+  </aside>
+</section>
+
+<section class="midten">
+  <h3>Forhåndskunnskap</h3>
+  <aside class="notes">
+    <p>
+      Å ha noen med forhåndskunnskap til å sette igang prosesser er nyttig. Vi var
+heldige og hadde en ressurs på teamet med god kjennskap til språket og
+økosystemet i starten.
+    </p>
+    <p>
+      Vokabular er en av de tingene som gjør det vanskelig å lære seg noe nytt. Å ha
+en person tilgjengelig som kan oversette fra velkjente begreper og domener til
+dette nye domenet gjør at ting går mye greiere.
+    </p>
+  </aside>
+</section>
+
+<section class="midten">
+  <h3>Motivasjon, nysgjerrighet og entusiasme</h3>
+  <aside class="notes">
+    <p>
+      Motivasjon, nysgjerrighet og entusiasme er viktige faktorer for hvorvidt en
+utvikler vil komme seg forbi første hinder når et nytt programmeringspråk skal
+læres. Hvis disse tingene ikke finnes i den gruppa programmerere du ønsker å
+introdusere et nytt språk for så blir det vanskelig.
+    </p>
+    <p>
+      Når utvikleren i prosjektet som hadde ekspertisen på F# dro på jordomseilig i
+ett år lurte vi litt på om vi kom til å klare å forvalte F#-kodebasen. Fasiten
+ett år etter er at vi ikke bare har forvalta kodebasen, men vi har skrevet den
+om og utvida omfanget med nesten det dobbelte i den tiden. Gode språk er gøy å
+jobbe med og fornøyde utviklere er gode utviklere.
+    </p>
+    <p>
+      Risiko ved teknologivalg reduseres når utviklere er villige til å gå den ekstra
+mila fordi det å gå er verdifullt i seg selv. Når du er så heldig å jobbe sammen
+med motiverte, engasjerte og nysgjerrige mennesker er det viktig å fortsette å
+pleie den typen kultur. Dette er noe som må forvaltes rett for å fungere.
+    </p>
+  </aside>
+</section>
+
+<section class="midten">
+  <h3>Felleskapet</h3>
+  <aside class="notes">
+    <p>
+      Det eksisterer enormt mye bra info på internett skrevet av kunnskapsrike
+ildsjeler. Dette har vært utrolig viktig for oss som famler litt rundt og ikke
+alltid vet hva vi gjør.
+    </p>
+    <p>
+      Dette er en av grunnen som gjør F# til et mye tryggere valg enn det kunne vært.
+Informasjon av god kvalitet er tilgjengelig på alle de vanlige stedene, og
+synligheten blir bare større etterhvert som tida går.
+    </p>
+  </aside>
+</section>
+
+<section class="midten">
+  <h2>TAKK FOR MEG</h2>
+  <h7>Stian Veum Møllersen / @mollerse</h7>
+  <h7>BEKK</h7>
+</section>
